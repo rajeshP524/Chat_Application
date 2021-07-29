@@ -14,4 +14,8 @@ public class Database {
     public ResultSet executeQuery(String query) throws SQLException {
         return st.executeQuery(query);
     }
+
+    public int executeUpdate(String query) throws SQLException {
+        return st.executeUpdate(query);
+    }
 }
