@@ -34,4 +34,24 @@ public class Controller {
 
         return false;
     }
+
+    public boolean addUser(String username, String password) throws SQLException {
+        String query = "select count(*) from users where username='"+username+"'";
+        try {
+            ResultSet rs = db.executeQuery(query);
+            int count = 0;
+            if(rs.next()){
+                count = rs.getInt(1);
+            }
+            if(count > 0){
+                return false;
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        query = "insert into users values('"+username+"', '"+password+"')";
+        db.executeUpdate(query);
+        return true;
+    }
 }
