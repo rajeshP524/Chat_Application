@@ -1,5 +1,7 @@
 package com.chatApp;
 
+import com.controller.Controller;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -8,12 +10,14 @@ public class ServerWorker extends Thread{
     InputStream inputStream = null;
     OutputStream outputStream = null;
     Server server;
+    Controller controller;
 
-    public ServerWorker(Server server, Socket clientSocket) throws IOException {
+    public ServerWorker(Server server, Socket clientSocket, Controller controller) throws IOException {
         this.clientSocket = clientSocket;
         this.inputStream = clientSocket.getInputStream();
         this.outputStream = clientSocket.getOutputStream();
         this.server = server;
+        this.controller = controller;
     }
 
     public void run(){
@@ -37,7 +41,16 @@ public class ServerWorker extends Thread{
     }
 
     // command format : login <username> <password>
-    private void handleLogIn(String[] tokens) {
-
+    private void handleLogIn(String[] tokens) throws IOException {
+        if(tokens.length == 3){
+            String username = tokens[1];
+            String password = tokens[2];
+            boolean isValidLogin = controller.isValidUser(username, password);
+            if(isValidLogin){
+                outputStream.write("login successful".getBytes());
+            }else{
+                outputStream.write("error login".getBytes());
+            }
+        }
     }
 }
