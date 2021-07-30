@@ -15,7 +15,7 @@ public class Controller {
         db = new Database(driver, url, username, password);
     }
 
-    public boolean isValidUser(String username, String password){
+    public boolean isValidLogin(String username, String password){
         String query = "select count(*) from users where username='"+username+"' and password='"+password+"'";
         try {
             ResultSet rs = db.executeQuery(query);
@@ -66,5 +66,10 @@ public class Controller {
         query = "insert into users values('"+username+"', '"+password+"')";
         db.executeUpdate(query);
         return true;
+    }
+
+    public void addMessage(String msgBody, String sender, String receiver) throws SQLException {
+        String query = "insert into messages values('" +sender+ "', '"+receiver+"', '"+msgBody+"', CURRENT_TIMESTAMP)";
+        db.executeUpdate(query);
     }
 }
