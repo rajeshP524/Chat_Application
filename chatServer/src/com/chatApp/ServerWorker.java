@@ -102,20 +102,57 @@ public class ServerWorker extends Thread{
         outputStream.write(msg.getBytes());
     }
 
-    private void handleUserCommands(String input) {
+    private void handleUserCommands(String input) throws IOException {
         String[] tokens = input.split(" ");
-        if(false){
-
+        String cmd = tokens[0];
+        if("msg".equalsIgnoreCase(cmd)){
+            tokens = input.split(" ", 3);
+            handleMessage(tokens);
         }else{
             try {
-                outputStream.write("unknown command".getBytes());
+                outputStream.write("unknown command\n".getBytes());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void handleExit() {
+    // send msg format : msg <sendTo> <msgBody>
+    // receive msg format: msg <received> <from> <msgBody>
+    private void handleMessage(String[] tokens) throws IOException {
+        List<ServerWorker> workerList = server.getWorkerList();
+        if(tokens.length == 3){
+            String sendTo = tokens[1];
+            String msgBody = tokens[2];
+
+            // sends msg, only to an active user
+            for(ServerWorker worker : workerList){
+                if(worker.getUserName().equals(sendTo)){
+                    String msg = "msg [received] " +user+ " " + msgBody + "\n";
+                    worker.send(msg);
+                    //store successful sent msgs in db
+                    try {
+                        controller.addMessage(msgBody, user, sendTo);
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
+                    return;
+                }
+            }
+
+            // storing undelivered messages at serverSide in a separate table;
+
+        }
+    }
+
+    private void handleExit() throws IOException {
+        List<ServerWorker> workerList = server.getWorkerList();
+        server.removeWorker(this);
+        for(ServerWorker worker : workerList){
+            String statusMsg = "offline " + getUserName() + "\n";
+            worker.send(statusMsg);
+        }
+
         try {
             clientSocket.close();
         } catch (IOException e) {
@@ -144,7 +181,7 @@ public class ServerWorker extends Thread{
         if(tokens.length == 3){
             String username = tokens[1];
             String password = tokens[2];
-            boolean isValidLogin = controller.isValidUser(username, password);
+            boolean isValidLogin = controller.isValidLogin(username, password);
             if(isValidLogin){
                 outputStream.write("login successful\n".getBytes());
                 return true;
