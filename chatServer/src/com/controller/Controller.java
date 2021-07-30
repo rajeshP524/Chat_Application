@@ -26,7 +26,20 @@ public class Controller {
             if(count == 0){
                 return false;
             }else{
-                return true;
+                // reCheck, if this is a case inSensitive login
+                query = "select * from users where username='"+username+"' and password='"+password+"'";
+                rs = db.executeQuery(query);
+                String uName = null;
+                String uPwd = null;
+                if(rs.next()){
+                    uName = rs.getString(1);
+                    uPwd = rs.getString(2);
+                }
+                if(uName.equals(username) && uPwd.equals(password)){
+                    return true;
+                }else{
+                    return false;
+                }
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
