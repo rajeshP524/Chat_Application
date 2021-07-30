@@ -43,4 +43,8 @@ public class Server extends Thread{
     public void addWorker(ServerWorker worker){
         workerList.add(worker);
     }
+
+    public void removeWorker(ServerWorker worker){
+        workerList.remove(worker);
+    }
 }
