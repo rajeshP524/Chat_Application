@@ -5,11 +5,15 @@ import com.controller.Controller;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Server extends Thread{
     private ServerSocket serverSocket = null;
     private int port;
     private Controller controller;
+    private List<ServerWorker> workerList = new ArrayList<>();
+
     public Server(int port, Controller controller) {
         this.controller = controller;
         this.port = port;
@@ -29,5 +33,14 @@ public class Server extends Thread{
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<ServerWorker> getWorkerList(){
+        return workerList;
+    }
+
+    // maintaining a list of all active users
+    public void addWorker(ServerWorker worker){
+        workerList.add(worker);
     }
 }
