@@ -118,4 +118,18 @@ public class Controller {
         db.executeUpdate(query);
         return resultSet;
     }
+
+
+    public List<String> getChatHistory(String user1, String user2) throws SQLException {
+        String query = "select * from (select * from messages as table1 where sender='"+user1+"' and receiver='"+user2+"' union select * from messages as table2 where sender='"+user2+"' and receiver='"+user1+"') as table3 order by timestamp asc";
+        ResultSet rs = db.executeQuery(query);
+        List<String> resultSet = new ArrayList<>();
+        while(rs.next()){
+            String sender = rs.getString(1);
+            String msgBody = rs.getString(3);
+            String chatMsg = sender + " " + msgBody;
+            resultSet.add(chatMsg);
+        }
+        return resultSet;
+    }
 }

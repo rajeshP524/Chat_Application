@@ -70,7 +70,7 @@ public class ServerWorker extends Thread{
             }
             else{
                 /* user NULL indicates that, he/she is not logged in! so that particular user is not allowed
-                execute any of the commands other than (login, register, quit)
+                execute any of the commands other than (login, register, quit/logout/exit)
                 */
                 if(user == null){
                     outputStream.write("login required\n".getBytes());
@@ -82,18 +82,20 @@ public class ServerWorker extends Thread{
         }
     }
 
+    // result msg format : msg <received> <sender> <msgBody>
     private void handleUndeliveredMessages() throws SQLException, IOException {
         String receiver  = user;
         List<String> resultSet = controller.getUndeliveredMessages(receiver);
 
         for(String msg : resultSet){
             send(msg);
-            String[] tokens = msg.split(" ");
+            String[] tokens = msg.split(" ", 4);
             String sender  = tokens[2];
+            String msgBody = tokens[3];
 
             // after the undelivered msg has been received, it has to be stored on db
             try {
-                controller.addMessage(msg, sender, user);
+                controller.addMessage(msgBody, sender, user);
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
             }
@@ -126,18 +128,46 @@ public class ServerWorker extends Thread{
         outputStream.write(msg.getBytes());
     }
 
-    private void handleUserCommands(String input) throws IOException {
+    private void handleUserCommands(String input) throws IOException, SQLException {
         String[] tokens = input.split(" ");
         String cmd = tokens[0];
         if("msg".equalsIgnoreCase(cmd)){
             tokens = input.split(" ", 3);
             handleMessage(tokens);
-        }else{
+        }
+        else if("history".equalsIgnoreCase(cmd)){
+            handleHistory(tokens);
+
+        } else{
             try {
                 outputStream.write("unknown command\n".getBytes());
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    //History receive format : sender <msgBody>
+    private void handleHistory(String[] tokens) throws IOException, SQLException {
+        if(tokens.length == 2){
+            String peer = tokens[1];
+            List<String> resultSet = controller.getChatHistory(user, peer);
+
+            for(String chatMsg : resultSet){
+                String[] chatTokens = chatMsg.split(" ", 2);
+                String sender = chatTokens[0];
+                String msgBody = chatTokens[1];
+
+                if(sender.equals(user)){
+                    sender = "you";
+                }
+
+                String msg = sender + "# " + msgBody +"\n";
+                send(msg);
+            }
+        }
+        else{
+            send("unknown command\n");
         }
     }
 
