@@ -132,8 +132,23 @@ public class ServerWorker extends Thread{
         String[] tokens = input.split(" ");
         String cmd = tokens[0];
         if("msg".equalsIgnoreCase(cmd)){
-            tokens = input.split(" ", 3);
-            handleMessage(tokens);
+            if(tokens.length > 2){
+                // check if this a group message
+                if(tokens[1].charAt(0) == '#'){
+                    handleChatroomMessage(input);
+                }
+                else{
+                    //handle direct messages
+                    tokens = input.split(" ", 3);
+                    handleMessage(tokens);
+                }
+            }
+        }
+        else if("join chatroom".equalsIgnoreCase(input)){
+            handleJoinChatroom();
+        }
+        else if("leave chatroom".equalsIgnoreCase(input)){
+            handleLeaveChatroom();
         }
         else if("history".equalsIgnoreCase(cmd)){
             handleHistory(tokens);
@@ -144,6 +159,71 @@ public class ServerWorker extends Thread{
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void handleChatroomMessage(String input) throws IOException, SQLException {
+
+        //only members of chatroom are allowed send msgs at this room
+        boolean isMemberOfChatroom = controller.isMemberOfChatroom(getUserName());
+        if(!isMemberOfChatroom){
+            String errMsg = "you are not a member of chatroom\n";
+            send(errMsg);
+            return;
+        }
+
+        String[] tokens = input.split(" ", 3);
+        if(tokens.length == 3){
+            // get members of chatroom
+            List<String> resultSet = controller.getChatroomUsers();
+            List<ServerWorker> workerList = server.getWorkerList(); //get list of active users
+            resultSet.remove(getUserName()); //as a sender remove yourself from receiving message
+            for(ServerWorker worker : workerList){
+                String username = worker.getUserName();
+                if(resultSet.contains(username)){
+                    String msg = "msg #chatroom "+getUserName()+" "+tokens[2]+"\n";
+                    worker.send(msg);
+
+                    //store chatroom messages on database;
+                    String sender = getUserName();
+                    String msgBody = tokens[2];
+                    controller.addChatroomMessage(sender, msgBody);
+
+                    resultSet.remove(username);
+                }
+            }
+
+            //now resultSet contains list of members who are undelivered
+
+        }
+        else{
+            send("unknown command\n");
+        }
+    }
+
+    private void handleLeaveChatroom() throws IOException, SQLException {
+        boolean isMemberOfChatroom = controller.isMemberOfChatroom(getUserName());
+        if(isMemberOfChatroom){
+            controller.removeChatroomUser(getUserName());
+            String msg = "you are removed from the chatroom\n";
+            send(msg);
+        }
+        else{
+            String errMsg = "you are not a member of chatroom\n";
+            send(errMsg);
+        }
+    }
+
+    private void handleJoinChatroom() throws IOException, SQLException {
+        boolean isMemberOfChatroom = controller.isMemberOfChatroom(getUserName());
+        if(isMemberOfChatroom){
+            String errMsg = "you are already a member of chatroom\n";
+            send(errMsg);
+        }
+        else{
+            controller.addChatroomUser(getUserName());
+            String msg = "you are added to chatroom\n";
+            send(msg);
         }
     }
 
@@ -216,6 +296,7 @@ public class ServerWorker extends Thread{
 
     private void handleExit() throws IOException {
         List<ServerWorker> workerList = server.getWorkerList();
+        //remove this user from list of active users
         server.removeWorker(this);
         for(ServerWorker worker : workerList){
             String statusMsg = "offline " + getUserName() + "\n";
@@ -234,6 +315,12 @@ public class ServerWorker extends Thread{
         if(tokens.length == 3){
             String username = tokens[1];
             String password = tokens[2];
+            // '#' is used for representing chatroom
+            if(username.contains("#")){
+                String errMsg = "\'#\' as a part of username isn't allowed\n";
+                send(errMsg);
+                return;
+            }
             boolean isSuccessfulRegistration = controller.addUser(username, password);
             if(isSuccessfulRegistration){
                 outputStream.write("registration successful\n".getBytes());
