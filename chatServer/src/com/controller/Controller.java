@@ -132,4 +132,49 @@ public class Controller {
         }
         return resultSet;
     }
+
+    public boolean isMemberOfChatroom(String username) {
+        String query = "select count(*) from membersOfChatroom where username='"+username+"'";
+        try {
+            ResultSet rs = db.executeQuery(query);
+            int count = 0;
+            if(rs.next()){
+                count = rs.getInt(1);
+            }
+            if(count > 0){
+                return true;
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public void addChatroomUser(String username) throws SQLException {
+        String query = "insert into membersOfChatroom values('"+username+"')";
+        db.executeUpdate(query);
+    }
+
+    public void removeChatroomUser(String username) throws SQLException {
+        String query = "delete from membersOfChatroom where username='"+username+"'";
+        db.executeUpdate(query);
+    }
+
+    public List<String> getChatroomUsers() throws SQLException {
+        String query = "select * from membersOfChatroom";
+        List<String> resultSet = new ArrayList<>();
+        ResultSet rs = db.executeQuery(query);
+        while(rs.next()){
+            String user = rs.getString(1);
+            resultSet.add(user);
+        }
+
+        return resultSet;
+    }
+
+    public void addChatroomMessage(String sender, String msgBody) throws SQLException {
+        String query = "insert into chatroomMessages values('"+sender+"', '"+msgBody+"', CURRENT_TIMESTAMP)";
+        db.executeUpdate(query);
+    }
 }
