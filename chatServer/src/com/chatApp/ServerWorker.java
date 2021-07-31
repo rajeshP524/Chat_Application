@@ -4,6 +4,7 @@ import com.controller.Controller;
 
 import java.io.*;
 import java.net.Socket;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,10 @@ public class ServerWorker extends Thread{
                     if(isSuccessfulLogin){
                         user = tokens[1];
                         server.addWorker(this); // maintaining a list of all active users
+
+                        // receive undelivered messages for this user (as a receiver)
+                        handleUndeliveredMessages();
+
                         handleGetOrSendStatus(); // get status of other users and send status of current user
                     }
                 }
@@ -75,6 +80,25 @@ public class ServerWorker extends Thread{
             }
 
         }
+    }
+
+    private void handleUndeliveredMessages() throws SQLException, IOException {
+        String receiver  = user;
+        List<String> resultSet = controller.getUndeliveredMessages(receiver);
+
+        for(String msg : resultSet){
+            send(msg);
+            String[] tokens = msg.split(" ");
+            String sender  = tokens[2];
+
+            // after the undelivered msg has been received, it has to be stored on db
+            try {
+                controller.addMessage(msg, sender, user);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+
     }
 
     private void handleGetOrSendStatus() throws IOException {
@@ -125,12 +149,18 @@ public class ServerWorker extends Thread{
             String sendTo = tokens[1];
             String msgBody = tokens[2];
 
+            //check if receiver is a valid user
+            if(!controller.isValidUser(sendTo)) {
+                send("no such user ("+sendTo+") exists!\n");
+                return;
+            }
+
             // sends msg, only to an active user
             for(ServerWorker worker : workerList){
                 if(worker.getUserName().equals(sendTo)){
                     String msg = "msg [received] " +user+ " " + msgBody + "\n";
                     worker.send(msg);
-                    //store successful sent msgs in db
+                    //store successfully sent messages in db
                     try {
                         controller.addMessage(msgBody, user, sendTo);
                     } catch (SQLException throwables) {
@@ -141,7 +171,16 @@ public class ServerWorker extends Thread{
             }
 
             // storing undelivered messages at serverSide in a separate table;
+            try {
+                controller.addUndeliveredMessage(msgBody, user, sendTo);
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
 
+        }
+        else{
+            String errMsg = "unknown command\n";
+            send(errMsg);
         }
     }
 
