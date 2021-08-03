@@ -1,0 +1,50 @@
+login:
+    format: login <username> <password>  ("login successful", "error login");
+
+register:
+    format: register <username> <password> ("registration successful", "username already exists");
+    * '#' as part of username isn't allowed
+
+quit/logout/exit:
+    * client Socket should be closed with this command
+
+status:
+    * newly logged in user has to get the status of every user, who are already on the network.
+    * newly logged in user has to send his status to every one, who are already on the network.
+    online <username>
+    offline <username>
+
+//send direct messages
+msg:
+    * send msg format : msg <sendTo> <msgBody>
+    * receive msg format: msg <received> <from> <msgBody>
+    * handle undelivered messages
+
+// send group messages
+chatroom:
+    * user has to join chatroom for messaging/receivingMessages
+    * messages that are sent in chatroom are received by the members of the chatroom
+    send format : msg <#chatroom> <msgBody>
+    receive format : msg <##chatroom> <sender> <msgBody>
+    join format : join chatroom (you are added to chatroom)
+    leave format : leave chatroom (yor are removed from the chatroom)
+
+
+// generic responses from server
+* unknown command
+* login required (executing any of the other commands without login shows up this error)
+* you are already logged in! cannot register!!(trying to register after login shows up this error)
+* you are already logged in! (trying to re-login shows up this error)
+* you are already a member of chatroom (trying to rejoin chatroom)
+
+
+
+
+//cases to handle
+ 1) sender sends packet to unregistered user(invalid user)  (handled)
+ 2) sender sends packet to a valid user, who is not online! (handled)
+ 3) sql injection attack (usage of preparedStatement(JDBC API) object can resolve this issue)
+ 4) encrypt passwords of the users on database
+ 5) encryption and decryption of messages over a network
+
+
