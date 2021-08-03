@@ -40,7 +40,7 @@ public class ServerWorker extends Thread{
             String[] tokens = input.split(" ");
             String cmd = tokens[0];
             if("login".equalsIgnoreCase(cmd)){
-                // if user tries to relogin being logged in
+                // if user tries to re-login being logged in
                 if(user != null) send("you are already logged in!\n");
                 else{
                     boolean isSuccessfulLogin = handleLogIn(tokens);
@@ -51,6 +51,9 @@ public class ServerWorker extends Thread{
 
                         // receive undelivered messages for this user (as a receiver)
                         handleUndeliveredMessages();
+
+                        // receive undelivered chatroom messages for this user (as a receiver)
+                        handleUndeliveredChatroomMessages();
 
                         handleGetOrSendStatus(); // get status of other users and send status of current user
                     }
@@ -82,13 +85,22 @@ public class ServerWorker extends Thread{
         }
     }
 
+    // result msg format : msg <#chatroom> <sender> <msgBody>
+    private void handleUndeliveredChatroomMessages() throws SQLException, IOException {
+        String receiver = getUserName();
+        List<String> resultSet = controller.getUndeliveredChatroomMessages(receiver);
+        for(String msg : resultSet){
+            send(msg + "\n");
+        }
+    }
+
     // result msg format : msg <received> <sender> <msgBody>
     private void handleUndeliveredMessages() throws SQLException, IOException {
         String receiver  = user;
         List<String> resultSet = controller.getUndeliveredMessages(receiver);
 
         for(String msg : resultSet){
-            send(msg);
+            send(msg + "\n");
             String[] tokens = msg.split(" ", 4);
             String sender  = tokens[2];
             String msgBody = tokens[3];
@@ -142,6 +154,8 @@ public class ServerWorker extends Thread{
                     tokens = input.split(" ", 3);
                     handleMessage(tokens);
                 }
+            }else{
+                send("unknown command\n");
             }
         }
         else if("join chatroom".equalsIgnoreCase(input)){
@@ -151,7 +165,16 @@ public class ServerWorker extends Thread{
             handleLeaveChatroom();
         }
         else if("history".equalsIgnoreCase(cmd)){
-            handleHistory(tokens);
+            if(tokens.length == 2){
+                if(tokens[1].charAt(0) == '#'){
+                    handleChatroomHistory();
+                }else{
+                    handleHistory(tokens);
+                }
+            }else{
+                send("unknown command\n");
+            }
+
 
         } else{
             try {
@@ -160,6 +183,22 @@ public class ServerWorker extends Thread{
                 e.printStackTrace();
             }
         }
+    }
+
+    private void handleChatroomHistory() throws SQLException, IOException {
+        List<String> resultSet = controller.getChatroomHistory();
+        for(String result : resultSet){
+            String[] tokens = result.split(" ", 2);
+            String sender = tokens[0];
+            String msgBody= tokens[1];
+            if(sender.equals(getUserName())){
+                sender = "you";
+            }
+
+            String msg = sender + "# " + msgBody + "\n";
+            send(msg);
+        }
+
     }
 
     private void handleChatroomMessage(String input) throws IOException, SQLException {
@@ -184,16 +223,20 @@ public class ServerWorker extends Thread{
                     String msg = "msg #chatroom "+getUserName()+" "+tokens[2]+"\n";
                     worker.send(msg);
 
-                    //store chatroom messages on database;
-                    String sender = getUserName();
-                    String msgBody = tokens[2];
-                    controller.addChatroomMessage(sender, msgBody);
-
                     resultSet.remove(username);
                 }
             }
 
+            //store chatroom messages on database;
+            String sender = getUserName();
+            String msgBody = tokens[2];
+            controller.addChatroomMessage(sender, msgBody);
+
             //now resultSet contains list of members who are undelivered
+            // storing undelivered chatroom members at serverside db, so they can get delivered chatroom messages when online.
+            for(String receiver : resultSet){
+                controller.addUndeliveredChatroomMessage(sender, receiver, msgBody);
+            }
 
         }
         else{
