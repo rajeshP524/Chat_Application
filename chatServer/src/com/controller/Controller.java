@@ -108,7 +108,7 @@ public class Controller {
             String sender = rs.getString(1);
             String msgBody = rs.getString(3);
 
-            String msg = "msg [received] " +sender+ " " + msgBody + "\n";
+            String msg = "msg [received] " +sender+ " " + msgBody;
             resultSet.add(msg);
         }
 
@@ -176,5 +176,43 @@ public class Controller {
     public void addChatroomMessage(String sender, String msgBody) throws SQLException {
         String query = "insert into chatroomMessages values('"+sender+"', '"+msgBody+"', CURRENT_TIMESTAMP)";
         db.executeUpdate(query);
+    }
+
+    public void addUndeliveredChatroomMessage(String sender, String receiver, String msgBody) throws SQLException {
+        String query = "insert into toBeDeliveredChatroom values('"+sender+"', '"+receiver+"', '"+msgBody+"', CURRENT_TIMESTAMP)";
+        db.executeUpdate(query);
+    }
+
+    public List<String> getUndeliveredChatroomMessages(String receiver) throws SQLException {
+        String query = "select * from toBeDeliveredChatroom where receiver='"+receiver+"'";
+        ResultSet rs = db.executeQuery(query);
+        List<String> resultSet = new ArrayList<>();
+
+        while(rs.next()){
+            String sender = rs.getString(1);
+            String msgBody = rs.getString(3);
+
+            String msg = "msg #chatroom " +sender+ " " + msgBody;
+            resultSet.add(msg);
+        }
+
+        //now after the messages has been delivered, those messages has to be removed from database
+        query = "delete from toBeDeliveredChatroom where receiver='"+receiver+"'";
+        db.executeUpdate(query);
+        return resultSet;
+    }
+
+    public List<String> getChatroomHistory() throws SQLException {
+        String query = "select * from chatroomMessages";
+        ResultSet rs = db.executeQuery(query);
+        List<String> resultSet = new ArrayList<>();
+        while(rs.next()){
+            String sender = rs.getString(1);
+            String msgBody = rs.getString(2);
+            String chatMsg = sender + " " + msgBody;
+            resultSet.add(chatMsg);
+        }
+
+        return resultSet;
     }
 }
