@@ -15,10 +15,12 @@ public class Authorization extends JFrame {
     private JPasswordField passwordField;
     private JButton login;
     private JButton register;
+    private Controller controller;
 
-    public Authorization(Client client){
+    public Authorization(Client client, Controller controller){
         super("Authorization");
         this.client = client;
+        this.controller = controller;
 
         // setting properties for authorization frame
         setVisible(true);
@@ -58,7 +60,7 @@ public class Authorization extends JFrame {
                     JOptionPane.showMessageDialog(Authorization.this, "login successful", "message", JOptionPane.INFORMATION_MESSAGE);
                     Authorization.this.setVisible(false);
                     // start Main Application
-                    new MainFrame(client);
+                    new MainFrame(client, controller);
                 }else{
                     JOptionPane.showMessageDialog(Authorization.this, "error login", "message", JOptionPane.ERROR_MESSAGE);
                 }
