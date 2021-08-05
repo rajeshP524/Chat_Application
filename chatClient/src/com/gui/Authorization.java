@@ -57,6 +57,8 @@ public class Authorization extends JFrame {
                 if(isSuccessfulLogin){
                     JOptionPane.showMessageDialog(Authorization.this, "login successful", "message", JOptionPane.INFORMATION_MESSAGE);
                     Authorization.this.setVisible(false);
+                    // start Main Application
+                    new MainFrame(client);
                 }else{
                     JOptionPane.showMessageDialog(Authorization.this, "error login", "message", JOptionPane.ERROR_MESSAGE);
                 }
