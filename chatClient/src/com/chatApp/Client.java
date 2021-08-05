@@ -141,4 +141,7 @@ public class Client {
         statusListeners.remove(listener);
     }
 
+    public void handleExit() throws IOException {
+        outputStream.write("exit".getBytes());
+    }
 }
