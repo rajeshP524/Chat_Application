@@ -30,7 +30,7 @@ public class StatusPanel extends JPanel implements UserStatusListener {
         setBorder(BorderFactory.createCompoundBorder(outer, inner));
 
         setLayout(new BorderLayout());
-        add(userList, BorderLayout.CENTER);
+        add(new JScrollPane(userList), BorderLayout.CENTER);
     }
 
     @Override
