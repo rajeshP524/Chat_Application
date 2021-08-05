@@ -8,12 +8,15 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class MainFrame extends JFrame {
-    Client client = null;
-    StatusPanel statusPanel;
+    private Client client = null;
+    private StatusPanel statusPanel;
+    private ToolBar toolBar;
+    private Controller controller;
 
-    public MainFrame(Client client){
+    public MainFrame(Client client, Controller controller){
         super("Chat Application");
         this.client = client;
+        this.controller = controller;
 
         // set attributes
         setVisible(true);
@@ -23,13 +26,15 @@ public class MainFrame extends JFrame {
         setLayout(new BorderLayout());
 
         // components
-        statusPanel = new StatusPanel(client);
+        statusPanel = controller.getStatusPanel();
+        toolBar = controller.getToolBar();
 
         //Add components to mainFrame
         add(statusPanel, BorderLayout.WEST);
+        add(toolBar, BorderLayout.NORTH);
     }
 
     public static void main(String[] args) throws UnknownHostException {
-        MainFrame mainFrame = new MainFrame(new Client(InetAddress.getLocalHost(), 8800));
+
     }
 }
