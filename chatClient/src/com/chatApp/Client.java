@@ -15,6 +15,9 @@ public class Client {
     private BufferedReader reader;
     private ArrayList<UserStatusListener> statusListeners = new ArrayList<>();
     private HistoryListener historyListener;
+    private MessageListener messageListener;
+    private UserValidityListener userValidityListener;
+    private String user;
 
     // a client has been created
     public Client(InetAddress serverIp, int serverPort){
@@ -68,7 +71,9 @@ public class Client {
         // read response from server
         String response = reader.readLine();
         if(response.equalsIgnoreCase("login successful")){
+            user = username;
             handleServerResponses();
+            
             return true;
         }
         else{
@@ -105,6 +110,48 @@ public class Client {
             }
             else if(cmd.charAt(cmd.length() - 1) == '#'){
                 handleHistory(input);
+            }
+            else if(cmd.equalsIgnoreCase("valid")){
+                handleValid(tokens);
+            }
+            else if(cmd.equalsIgnoreCase("invalid")){
+                handleInValid(tokens);
+            }
+            else if(cmd.equalsIgnoreCase("msg")){
+                if(tokens.length > 1){
+                    if(tokens[1].charAt(0) == '#'){
+                        //handle chatRoom message
+                    }
+                    else{
+                        //handle direct message
+                        handleMessage(input);
+                    }
+                }
+            }
+        }
+    }
+
+    private void handleValid(String[] tokens) {
+        String username = tokens[1];
+        if(userValidityListener != null){
+            userValidityListener.validUser(username);
+        }
+    }
+
+    private void handleInValid(String[] tokens) {
+        String username = tokens[1];
+        if(userValidityListener != null){
+            userValidityListener.invalidUser(username);
+        }
+    }
+
+    private void handleMessage(String input) {
+        String tokens[] = input.split(" ", 4);
+        if(tokens.length == 4){
+            String sender = tokens[2];
+            String msgBody = tokens[3];
+            if(messageListener != null){
+                messageListener.onMessage(sender, msgBody);
             }
         }
     }
@@ -161,5 +208,35 @@ public class Client {
 
     public void setHistoryListener(HistoryListener historyListener){
         this.historyListener = historyListener;
+    }
+
+    public void message(String cmd) {
+        System.out.println("printing the message command : " + cmd);
+        try {
+            outputStream.write(cmd.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setMessageListener(MessageListener messageListener) {
+        this.messageListener = messageListener;
+    }
+    
+    public String getUser(){
+        return user;
+    }
+
+    public void isValidUser(String username){
+        String cmd = "isvalid " + username + "\n";
+        try {
+            outputStream.write(cmd.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setUserValidityListener(UserValidityListener userValidityListener) {
+        this.userValidityListener = userValidityListener;
     }
 }
