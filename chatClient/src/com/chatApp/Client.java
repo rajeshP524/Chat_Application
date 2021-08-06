@@ -14,6 +14,7 @@ public class Client {
     private OutputStream outputStream;
     private BufferedReader reader;
     private ArrayList<UserStatusListener> statusListeners = new ArrayList<>();
+    private HistoryListener historyListener;
 
     // a client has been created
     public Client(InetAddress serverIp, int serverPort){
@@ -102,6 +103,15 @@ public class Client {
             else if(cmd.equalsIgnoreCase("offline")){
                 handleOffline(tokens);
             }
+            else if(cmd.charAt(cmd.length() - 1) == '#'){
+                handleHistory(input);
+            }
+        }
+    }
+
+    private void handleHistory(String history) {
+        if(historyListener != null){
+            historyListener.onHistory(history + "\n");
         }
     }
 
@@ -143,5 +153,13 @@ public class Client {
 
     public void handleExit() throws IOException {
         outputStream.write("exit".getBytes());
+    }
+
+    public void getHistory(String cmd) throws IOException {
+        outputStream.write(cmd.getBytes());
+    }
+
+    public void setHistoryListener(HistoryListener historyListener){
+        this.historyListener = historyListener;
     }
 }
