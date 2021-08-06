@@ -5,9 +5,7 @@ import com.chatApp.Client;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.ColorModel;
+
 
 public class ChatToolBar extends JPanel {
 
@@ -30,5 +28,8 @@ public class ChatToolBar extends JPanel {
 
     public void setHeadLabelText(String text) {
         headLabel.setText(text);
+    }
+    public String getHeadLabelText(){
+        return headLabel.getText();
     }
 }

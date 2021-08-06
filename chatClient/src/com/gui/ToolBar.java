@@ -1,6 +1,7 @@
 package com.gui;
 
 import com.chatApp.Client;
+import com.chatApp.UserValidityListener;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,6 +16,8 @@ public class ToolBar extends JPanel {
     private JButton chatRoom;
     private JButton exit;
 
+    private DMessageListener dMessageListener;
+
     public ToolBar(Client client){
         this.client = client;
 
@@ -27,6 +30,7 @@ public class ToolBar extends JPanel {
         add(chatRoom, FlowLayout.LEFT);
         add(exit, FlowLayout.RIGHT);
 
+        // add listener for exit button
         exit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
@@ -42,5 +46,46 @@ public class ToolBar extends JPanel {
 
             }
         });
+
+        // add Listener for directMessage
+        directMessage.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                String username = JOptionPane.showInputDialog(ToolBar.this, "Enter username:" );
+                if(username.length() == 0){
+                    JOptionPane.showMessageDialog(ToolBar.this, "No such user exits", "message", JOptionPane.ERROR_MESSAGE);
+                }
+                else{
+                    client.isValidUser(username);
+                }
+            }
+        });
+
+        // add Listener for chatRoom
+        chatRoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                String username = JOptionPane.showInputDialog(ToolBar.this, "Enter a command: " );
+            }
+        });
+
+        // add toolBar as a listener for user validness
+        client.setUserValidityListener(new UserValidityListener() {
+            @Override
+            public void validUser(String username) {
+                if(dMessageListener != null){
+                    dMessageListener.onValidUser(username);
+                }
+            }
+
+            @Override
+            public void invalidUser(String username) {
+                JOptionPane.showMessageDialog(ToolBar.this, "No such user exits", "message", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+    }
+
+    public void setdMessageListener(DMessageListener dMessageListener) {
+        this.dMessageListener = dMessageListener;
     }
 }

@@ -42,6 +42,8 @@ public class MainFrame extends JFrame {
 
         // list of events that main frame is responsible for
         mainFrameAsAListener();
+
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     private void mainFrameAsAListener() {
@@ -61,6 +63,14 @@ public class MainFrame extends JFrame {
             @Override
             public void onHistory(String history) {
                 chatPanel.getTextArea().append(history);
+            }
+        });
+
+        //listens valid users from DMessageLister
+        toolBar.setdMessageListener(new DMessageListener() {
+            @Override
+            public void onValidUser(String username) {
+                chatPanel.listenUserNameFromMainFrame(username, MainFrame.this);
             }
         });
     }
