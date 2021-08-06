@@ -20,6 +20,10 @@ msg:
     * receive msg format: msg <received> <from> <msgBody>
     * handle undelivered messages
 
+isvalid:
+    * request : isvalid <username>   (valid <username>/invalid <username>)
+
+
 // send group messages
 chatroom:
     * user has to join chatroom for messaging/receivingMessages
