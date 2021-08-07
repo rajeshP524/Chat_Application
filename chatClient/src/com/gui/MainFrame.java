@@ -73,9 +73,17 @@ public class MainFrame extends JFrame {
                 chatPanel.listenUserNameFromMainFrame(username, MainFrame.this);
             }
         });
+
+        //MainFrame as a listener for chatroom label setting
+        toolBar.setChatroomLabelSetter(new ChatroomLabelSetter() {
+            @Override
+            public void setLabel() {
+                chatPanel.listenChatroomLabelSetFromMainFrame(MainFrame.this);
+            }
+        });
     }
 
-    //get history of a particular user and append it to chatArea
+    //get history of a particular user/chatroom and append it to chatArea
     public void setChatArea(String user) {
         chatPanel.getTextArea().setText("");
         //request server for chatHistory
