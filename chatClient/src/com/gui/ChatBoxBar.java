@@ -48,6 +48,29 @@ public class ChatBoxBar extends JPanel {
                 }
             }
         });
+
+        // directly send msg without send button
+        chatField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                String msg = chatField.getText() + "\n";
+                chatField.setText("");
+                if(msg.length() == 1){
+                    //length == 1 indicates that there is only "\n"
+                }else{
+                    int count = 0;
+                    for(char c : msg.toCharArray()){
+                        if(c == ' ') count++;
+                    }
+
+                    if(count == msg.length() - 1) return;
+
+                    if(chatFieldListener != null){
+                        chatFieldListener.onChatMessage(msg);
+                    }
+                }
+            }
+        });
     }
 
     public void setChatFieldListener(ChatFieldListener chatFieldListener) {
