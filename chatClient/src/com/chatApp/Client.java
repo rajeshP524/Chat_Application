@@ -17,7 +17,9 @@ public class Client {
     private HistoryListener historyListener;
     private MessageListener messageListener;
     private UserValidityListener userValidityListener;
+    private ChatroomMessageListener chatroomMessageListener;
     private String user;
+    private boolean isMemberOfChatroom = false;
 
     // a client has been created
     public Client(InetAddress serverIp, int serverPort){
@@ -72,7 +74,13 @@ public class Client {
         String response = reader.readLine();
         if(response.equalsIgnoreCase("login successful")){
             user = username;
+
+            //listen from server continuously
             handleServerResponses();
+
+            // check if this particular user is a member of chatroom
+            String str = "isvalid chatroom " + user + "\n";
+            outputStream.write(str.getBytes());
             
             return true;
         }
@@ -94,6 +102,7 @@ public class Client {
         };
 
         thread.start();
+
     }
 
     //client Worker
@@ -111,6 +120,9 @@ public class Client {
             else if(cmd.charAt(cmd.length() - 1) == '#'){
                 handleHistory(input);
             }
+            else if(cmd.equalsIgnoreCase("yes")){
+                isMemberOfChatroom = true;
+            }
             else if(cmd.equalsIgnoreCase("valid")){
                 handleValid(tokens);
             }
@@ -121,12 +133,25 @@ public class Client {
                 if(tokens.length > 1){
                     if(tokens[1].charAt(0) == '#'){
                         //handle chatRoom message
+                        handleChatroomMessage(input);
                     }
                     else{
                         //handle direct message
                         handleMessage(input);
                     }
                 }
+            }
+        }
+    }
+
+    private void handleChatroomMessage(String input) {
+        String tokens[] = input.split(" ", 4);
+        if(tokens.length == 4){
+            String sender = tokens[2];
+            String msgBody = tokens[3];
+
+            if(chatroomMessageListener != null){
+                chatroomMessageListener.onChatroomMessage(sender, msgBody);
             }
         }
     }
@@ -211,7 +236,6 @@ public class Client {
     }
 
     public void message(String cmd) {
-        System.out.println("printing the message command : " + cmd);
         try {
             outputStream.write(cmd.getBytes());
         } catch (IOException e) {
@@ -238,5 +262,33 @@ public class Client {
 
     public void setUserValidityListener(UserValidityListener userValidityListener) {
         this.userValidityListener = userValidityListener;
+    }
+
+    public void joinChatroom(String cmd) {
+        try {
+            outputStream.write(cmd.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void leaveChatroom(String cmd) {
+        try {
+            outputStream.write(cmd.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean isMemberOfChatroom() {
+        return isMemberOfChatroom;
+    }
+
+    public void setMemberOfChatroom(boolean memberOfChatroom) {
+        isMemberOfChatroom = memberOfChatroom;
+    }
+
+    public void setChatroomMessageListener(ChatroomMessageListener chatroomMessageListener) {
+        this.chatroomMessageListener = chatroomMessageListener;
     }
 }
