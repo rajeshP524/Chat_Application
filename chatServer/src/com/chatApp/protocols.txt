@@ -20,19 +20,28 @@ msg:
     * receive msg format: msg <received> <from> <msgBody>
     * handle undelivered messages
 
-isvalid:
+isvalid: // check if particular user is a valid user
     * request : isvalid <username>   (valid <username>/invalid <username>)
 
+// check if particular user is a member of chatroom
+isvalid chatroom:
+    * isvalid chatroom <username> (yes <username> / no <username>)
 
 // send group messages
 chatroom:
     * user has to join chatroom for messaging/receivingMessages
     * messages that are sent in chatroom are received by the members of the chatroom
     send format : msg <#chatroom> <msgBody>
-    receive format : msg <##chatroom> <sender> <msgBody>
+    receive format : msg <#chatroom> <sender> <msgBody>
     join format : join chatroom (you are added to chatroom)
     leave format : leave chatroom (yor are removed from the chatroom)
 
+
+//history:
+    * restore previous chat history using history command for both chat room and personal chats
+    command (personal chat) : history <username>
+    command (chatroom) : history <#chatroom>
+    msg recv format : <sender# > <msgBody>
 
 // generic responses from server
 * unknown command
