@@ -165,7 +165,15 @@ public class ServerWorker extends Thread{
             handleLeaveChatroom();
         }
         else if("isvalid".equalsIgnoreCase(cmd)){
-            handleIsValid(input);
+            if(tokens.length > 1){
+                if(tokens[1].equalsIgnoreCase("chatroom")){
+                    isValidChatroomUser(input);
+                }
+                else{
+                    handleIsValid(input);
+                }
+            }
+
         }
         else if("history".equalsIgnoreCase(cmd)){
             if(tokens.length == 2){
@@ -184,6 +192,21 @@ public class ServerWorker extends Thread{
                 outputStream.write("unknown command\n".getBytes());
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    private void isValidChatroomUser(String input) throws IOException {
+        String tokens[] = input.split(" ");
+        if(tokens.length == 3){
+            boolean isMemberOfChatroom = controller.isMemberOfChatroom(tokens[2]);
+            if(isMemberOfChatroom){
+                String response = "yes " + tokens[2] + "\n";
+                send(response);
+            }
+            else{
+                String response = "no " + tokens[2] + "\n";
+                send(response);
             }
         }
     }
