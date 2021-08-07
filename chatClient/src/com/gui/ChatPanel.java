@@ -1,5 +1,6 @@
 package com.gui;
 
+import com.chatApp.ChatroomMessageListener;
 import com.chatApp.Client;
 import com.chatApp.MessageListener;
 
@@ -28,7 +29,7 @@ public class ChatPanel extends JPanel {
         add(new JScrollPane(textArea), BorderLayout.CENTER);
         add(chatBoxBar, BorderLayout.SOUTH);
 
-        //chatPanel as a listener
+        //chatPanel as a listener for chatField
         chatBoxBar.setChatFieldListener(new ChatFieldListener() {
             @Override
             public void onChatMessage(String message) {
@@ -48,8 +49,28 @@ public class ChatPanel extends JPanel {
                 String msg = sender + "# " + msgBody + "\n";
 
                 String tokens[] = chatToolBar.getHeadLabelText().split(" ");
+
+                if(tokens.length != 3) return;
+
                 // check if present opened user is a valid one, to append the text
                 if(sender.equalsIgnoreCase(tokens[2])){
+                    textArea.append(msg);
+                }
+            }
+        });
+
+        // chatPanel as a listener for receiving chatroom messages
+        client.setChatroomMessageListener(new ChatroomMessageListener() {
+            @Override
+            public void onChatroomMessage(String sender, String msgBody) {
+                String msg = sender + "# " + msgBody + "\n";
+
+                String[] tokens = chatToolBar.getHeadLabelText().split(" ");
+
+                if(tokens.length != 3) return;
+
+                //check if present open one is a chatroom to append the text
+                if("#chatroom".equalsIgnoreCase(tokens[2])){
                     textArea.append(msg);
                 }
             }
@@ -75,5 +96,12 @@ public class ChatPanel extends JPanel {
         String label = "Message : " + username;
         chatToolBar.setHeadLabelText(label);
         mainFrame.setChatArea(username);
+    }
+
+    //chatPanel as a listener for chatroom laber setting(for a valid member of chatroom) through mainFrame
+    public void listenChatroomLabelSetFromMainFrame(MainFrame mainFrame){
+        String label = "Message : " + "#chatroom";
+        chatToolBar.setHeadLabelText(label);
+        mainFrame.setChatArea("#chatroom");
     }
 }
