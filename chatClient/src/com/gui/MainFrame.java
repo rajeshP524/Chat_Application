@@ -22,10 +22,11 @@ public class MainFrame extends JFrame {
         this.client = client;
         this.controller = controller;
 
+
         // set attributes
         setVisible(true);
         setSize(550, 320);
-        setResizable(false);
+        //setResizable(false);
         //setMinimumSize(new Dimension(800,400));
 
         setLayout(new BorderLayout());
@@ -34,6 +35,9 @@ public class MainFrame extends JFrame {
         statusPanel = controller.getStatusPanel();
         toolBar = controller.getToolBar();
         chatPanel = new ChatPanel(client);
+
+        //set user icon name
+        toolBar.setUserNameLabelText(client.getUser());
 
         //Add components to mainFrame
         add(statusPanel, BorderLayout.WEST);
