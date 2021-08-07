@@ -35,6 +35,10 @@ public class ChatPanel extends JPanel {
             public void onChatMessage(String message) {
                 String label = chatToolBar.getHeadLabelText();
                 String tokens[] = label.split(" ");
+
+                // length 1 says that, no user got selected
+                if(tokens.length == 1) return;
+
                 String cmd = "msg " + tokens[2] + " " + message;
                 //send msg command to server to send message to this particular user
                 client.message(cmd);
